@@ -22,6 +22,7 @@ let viewFavoritesOnly = false;
 let selectedPokemonId = null;
 let playingCryId = null;
 let currentAudio = null;
+let hasAnimatedGrid = false;
 
 // Initialize state from LocalStorage
 try {
@@ -253,8 +254,13 @@ function renderGrid() {
         const cryIconClass = isPlaying ? "fa-solid fa-volume-high text-green-400 animate-pulse" : "fa-solid fa-volume-low text-gray-400 hover:text-yellow-400";
 
         const card = document.createElement("div");
-        card.style.animationDelay = `${Math.min(index * 25, 400)}ms`;
-        
+        card.className = "pokemon-card group bg-[#ffffff] border border-[#212127] hover:border-[#383842] rounded-xl overflow-hidden relative cursor-pointer flex flex-col justify-between h-72";
+
+        if (!hasAnimatedGrid) {
+            card.classList.add("animate-in");
+            card.style.animationDelay = `${Math.min(index * 20, 350)}ms`;
+        }
+
         card.className = "pokemon-card group bg-[#ffffff] border border-[#212127] hover:border-[#383842] rounded-xl overflow-hidden relative cursor-pointer flex flex-col justify-between h-72";
         card.onclick = () => openModal(pokemon.id);
 
@@ -286,12 +292,13 @@ function renderGrid() {
             <!-- Main GIF Screen -->
             <div class="flex-1 flex flex-col items-center justify-center p-4 relative">
             <div class="w-24 h-24 flex items-center justify-center relative">
-                <div class="absolute inset-0 rounded-full blur-xl opacity-30 transition-colors group-hover:opacity-50 bg-pokemon-${pokemon.types[0]}"></div>
+                <div class="pokemon-glow absolute inset-0 rounded-full blur-xl bg-pokemon-${pokemon.types[0]}"></div>
                 <img 
                 src="${currentGifUrl}" 
                 alt="${pokemon.name}" 
                 class="max-h-20 max-w-full object-contain relative z-10 transition-transform duration-300 group-hover:scale-200"
                 loading="lazy"
+                onload="this.classList.add('loaded')"
                 onerror="this.onerror=null; this.src='${fallbackUrl}';"
                 />
             </div>
@@ -329,6 +336,9 @@ function renderGrid() {
         `;
         grid.appendChild(card);
     });
+
+    // Animation should only happen once
+    hasAnimatedGrid = true;
 }
 
 // Copy Tool

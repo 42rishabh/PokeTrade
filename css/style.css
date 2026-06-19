@@ -1,8 +1,15 @@
-/* Pokémon Card Entrance */
+/* Initial State */
 .pokemon-card {
+    opacity: 1;
+    transform: none;
+}
+
+/* Animate only when needed */
+.pokemon-card.animate-in {
     opacity: 0;
     transform: translateY(24px) scale(.96);
-    animation: cardEnter .45s cubic-bezier(.2,.8,.2,1) forwards;
+    animation: cardEnter .45s cubic-bezier(.22,.61,.36,1) forwards;
+    will-change: transform, opacity;
 }
 
 @keyframes cardEnter {
@@ -14,4 +21,32 @@
         opacity: 1;
         transform: translateY(0) scale(1);
     }
+}
+
+/* Pokémon Sprite Loading */
+.pokemon-sprite{
+    opacity:0;
+    transition:opacity .25s ease;
+}
+
+.pokemon-sprite.loaded{
+    opacity:1;
+}
+
+/* Glow Animation */
+.pokemon-glow{
+    opacity:0;
+    transform:scale(.6);
+    transition:
+        opacity .35s ease,
+        transform .35s ease;
+}
+
+.pokemon-card:hover .pokemon-glow{
+    opacity:.5;
+}
+
+.pokemon-sprite.loaded + .pokemon-glow{
+    opacity:.3;
+    transform:scale(1);
 }
