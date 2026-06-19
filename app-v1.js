@@ -1,6 +1,5 @@
 // Localized database of Kanto 151
 let POKEMON = [];
-
 async function loadKantoDex() {
 
     const response = await fetch("./data/kanto.json");
@@ -185,52 +184,56 @@ async function downloadGif(id, name, angle = 'front', event) {
 function renderGrid() {
     const grid = document.getElementById("pokemon-grid");
     const emptyState = document.getElementById("empty-state");
-    
+
     let pokemonList = [...POKEMON];
 
-    // Filter: Search Text
+    // Search
     if (searchQuery.trim() !== "") {
         const query = searchQuery.toLowerCase().trim();
-        pokemonList = pokemonList.filter(p => 
-            p.name.toLowerCase().includes(query) || p.id.toString() === query
+        pokemonList = pokemonList.filter(p =>
+            p.name.toLowerCase().includes(query) ||
+            p.id.toString() === query
         );
     }
 
-    // Filter: Type
+    // Type
     if (selectedType !== "all") {
-        pokemonList = pokemonList.filter(p => p.types.includes(selectedType));
+        pokemonList = pokemonList.filter(p =>
+            p.types.includes(selectedType)
+        );
     }
 
-    // Filter: Favorites Only
+    // Favorites
     if (viewFavoritesOnly) {
-        pokemonList = pokemonList.filter(p => favorites.includes(p.id));
+        pokemonList = pokemonList.filter(p =>
+            favorites.includes(p.id)
+        );
     }
 
     // Sort
     pokemonList.sort((a, b) => {
-        if (sortBy === "id-asc") return a.id - b.id;
-        if (sortBy === "id-desc") return b.id - a.id;
-        if (sortBy === "name-asc") return a.name.localeCompare(b.name);
-        if (sortBy === "name-desc") return b.name.localeCompare(a.name);
-        if (sortBy === "hp-desc") return b.hp - a.hp;
-        if (sortBy === "speed-desc") return b.speed - a.speed;
-        return 0;
+        switch (sortBy) {
+            case "id-asc": return a.id - b.id;
+            case "id-desc": return b.id - a.id;
+            case "name-asc": return a.name.localeCompare(b.name);
+            case "name-desc": return b.name.localeCompare(a.name);
+            case "hp-desc": return b.hp - a.hp;
+            case "speed-desc": return b.speed - a.speed;
+            default: return 0;
+        }
     });
 
-    // Clear Grid
     grid.innerHTML = "";
 
-    // Empty State View
-    if (pokemonList.length === 0) {
+    if (!pokemonList.length) {
+
         grid.classList.add("hidden");
         emptyState.classList.remove("hidden");
-        const emptyMsg = document.getElementById("empty-message");
-        
-        if (viewFavoritesOnly) {
-            emptyMsg.innerText = "You haven't added any Kanto Pokémon to your favorites shelf yet. Click the heart icon on any card!";
-        } else {
-            emptyMsg.innerText = "We couldn't find any results matching your search queries. Try refining your filters!";
-        }
+
+        document.getElementById("empty-message").innerText =
+            viewFavoritesOnly
+                ? "You haven't added any Kanto Pokémon to your favorites shelf yet. Click the heart icon on any card!"
+                : "We couldn't find any results matching your search queries. Try refining your filters!";
 
         return;
     }
@@ -238,120 +241,173 @@ function renderGrid() {
     grid.classList.remove("hidden");
     emptyState.classList.add("hidden");
 
-    // Generate Card Nodes
-    pokemonList.forEach((pokemon, index) => {
-        const isFavorited = favorites.includes(pokemon.id);
-        const currentGifUrl = getGifUrl(pokemon.id, gifStyle, isShiny, 'front');
-        const fallbackUrl = getFallbackUrl(pokemon.id, 'front');
-
-        // Create Badge markup
-        const typeBadges = pokemon.types.map(t => 
-            `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded text-white tracking-wider uppercase bg-pokemon-${t}">${t}</span>`
-        ).join("");
-
-        const isPlaying = playingCryId === pokemon.id;
-        const cryIconClass = isPlaying ? "fa-solid fa-volume-high text-green-400 animate-pulse" : "fa-solid fa-volume-low text-gray-400 hover:text-yellow-400";
+    pokemonList.forEach(pokemon => {
 
         const card = document.createElement("div");
-        card.className = "pokemon-card group bg-[#ffffff] border border-[#212127] hover:border-[#383842] rounded-xl overflow-hidden relative cursor-pointer flex flex-col justify-between h-[340px]";
+
+        card.className =
+            "pokemon-card group bg-[#ffffff] border border-[#212127] hover:border-[#383842] rounded-xl overflow-hidden relative cursor-pointer flex flex-col justify-between h-[340px]";
+
         card.onclick = () => openModal(pokemon.id);
 
-        card.innerHTML = `
-            <!-- Card Action Header -->
-            <div class="flex justify-between items-center px-3 py-2 text-xs text-gray-400 z-10">
-                <span class="font-mono text-pokeRed-500 font-bold">
-                    #${String(pokemon.id).padStart(3, '0')}
-                </span>
-                <div class="flex gap-2">
-                    <button 
+        card.innerHTML = renderPokemonCard(pokemon);
+
+        grid.appendChild(card);
+
+    });
+}
+
+function renderPokemonCard(pokemon) {
+
+    const typeGlow = {
+        grass: "#6CCF6B",
+        fire: "#FF8A3D",
+        water: "#5DA9FF",
+        electric: "#FFD84D",
+        bug: "#9CCB3C",
+        poison: "#B96BEA",
+        flying: "#9BB8FF",
+        ground: "#CFA46C",
+        rock: "#B8A46A",
+        psychic: "#FF6FAE",
+        ghost: "#7B6DFF",
+        dragon: "#6B7CFF",
+        ice: "#8EE9FF",
+        fighting: "#D96A4A",
+        steel: "#B8C4D6",
+        fairy: "#FFB7E8",
+        normal: "#BDBDBD"
+    };
+
+    const typeBackground = {
+        grass: "linear-gradient(180deg,#1f3b2b 0%,#14241b 55%,#f4f4f4 100%)",
+        fire: "linear-gradient(180deg,#4b2b17 0%,#2d1a10 55%,#f4f4f4 100%)",
+        water: "linear-gradient(180deg,#1c3655 0%,#15253d 55%,#f4f4f4 100%)",
+        electric: "linear-gradient(180deg,#5a4b13 0%,#342c10 55%,#f4f4f4 100%)",
+        bug: "linear-gradient(180deg,#2b4320 0%,#1b2b15 55%,#f4f4f4 100%)",
+        poison: "linear-gradient(180deg,#40204f 0%,#281732 55%,#f4f4f4 100%)",
+        flying: "linear-gradient(180deg,#35445d 0%,#1d2533 55%,#f4f4f4 100%)",
+        normal: "linear-gradient(180deg,#3d3d3d 0%,#252525 55%,#f4f4f4 100%)"
+    };
+
+    const bgGradient = typeBackground[pokemon.types[0]] || typeBackground.normal;
+
+    const glowColor = typeGlow[pokemon.types[0]] || "#ffffff";
+
+    const isFavorited = favorites.includes(pokemon.id);
+    const currentGifUrl = getGifUrl(
+        pokemon.id,
+        gifStyle,
+        isShiny,
+        "front"
+    );
+
+    const fallbackUrl = getFallbackUrl(
+        pokemon.id,
+        "front"
+    );
+
+    const typeBadges = pokemon.types.map(t =>
+        `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded text-white tracking-wider uppercase bg-pokemon-${t}">${t}</span>`
+    ).join("");
+
+    const isPlaying = playingCryId === pokemon.id;
+
+    const cryIconClass = isPlaying
+        ? "fa-solid fa-volume-high text-green-400 animate-pulse"
+        : "fa-solid fa-volume-low text-gray-400 hover:text-yellow-400";
+
+    return `
+
+        <!-- Card Action Header -->
+        <div class="flex justify-between items-center px-3 py-2 text-xs text-gray-400 z-10">
+            <span class="font-mono text-pokeRed-500 font-bold">
+                #${String(pokemon.id).padStart(3, '0')}
+            </span>
+            <div class="flex gap-2">
+                <button 
                     onclick="toggleFavorite(${pokemon.id}, '${pokemon.name}', event)"
                     class="text-gray-400 hover:text-rose-500 transition-colors p-1"
                     title="Add to Favorites"
-                    >
+                >
                     <i class="${isFavorited ? 'fa-solid fa-heart text-rose-500' : 'fa-regular fa-heart'}"></i>
-                    </button>
-                    <button 
+                </button>
+                <button 
                     data-cry-btn="${pokemon.id}"
                     onclick="event.stopPropagation(); playCry(${pokemon.id})"
                     class="transition-all p-1"
                     title="Play Pokémon Cry"
-                    >
+                >
                     <i class="${cryIconClass}"></i>
-                    </button>
-                </div>
-                </div>
-
-                <!-- Main GIF Screen -->
-                <div class="flex-1 flex flex-col items-center justify-center p-4 relative">
-                    <div class="absolute inset-0 bg-gradient-to-b from-white via-[#fafafa] to-[#f1f1f1]"></div>
-
-                    <div class="absolute inset-0 opacity-60"
-                        style=" background: radial-gradient(circle at center, rgba(255,255,255,0) 0%, rgba(255,255,255,.35) 35%, rgba(0,0,0,.02) 100%); ">
-                    </div>
-                    
-                    <div class="w-36 h-36 flex items-center justify-center relative mx-auto z-10">
-
-                        <!-- Poké Ball Watermark -->
-                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-
-                            <div class="w-36 h-36 rounded-full border-[10px] border-black/10 relative">
-
-                                <div class="absolute left-0 right-0 top-1/2 h-[10px] -translate-y-1/2 bg-black/10"></div>
-
-                                <div class="absolute left-1/2 top-1/2 w-8 h-8 rounded-full border-[8px] border-black/10 bg-transparent -translate-x-1/2 -translate-y-1/2"></div>
-
-                            </div>
-
-                        </div>
-
-                        <!-- Type Glow -->
-                        <div class="pokemon-glow absolute inset-0 rounded-full blur-3xl bg-pokemon-${pokemon.types[0]}"></div>
-
-                        <!-- Pokémon -->
-                        <img 
-                            src="${currentGifUrl}" 
-                            alt="${pokemon.name}" 
-                            class="pokemon-sprite max-h-28 max-w-full object-contain relative z-20"
-                            loading="lazy"
-                            onload="this.classList.add('loaded')"
-                            onerror="this.onerror=null; this.src='${fallbackUrl}'; this.classList.add('loaded');"
-                        />
-
-                    </div>
-                </div>
-
-                <!-- Description and Footer -->
-                <div class="p-3 bg-[#1c1c1f]/80 border-t border-[#232329] relative z-10">
-                <h3 class="text-sm font-bold text-white group-hover:text-pokeRed-400 transition-colors">
-                    ${pokemon.name}
-                </h3>
-                <div class="flex gap-1.5 mt-1.5 flex-wrap">
-                    ${typeBadges}
-                </div>
-                
-                <div class="flex items-center justify-between border-t border-[#2d2d37] mt-3.5 pt-2 text-[11px] text-gray-400 font-medium">
-                    <button 
-                    id="copy-btn-${pokemon.id}"
-                    onclick="event.stopPropagation(); copyGifUrl(${pokemon.id}, '${pokemon.name}')"
-                    class="hover:text-white transition flex items-center gap-1"
-                    title="Copy Direct GIF Link"
-                    >
-                    <i class="fa-solid fa-link"></i>
-                    <span>Copy</span>
-                    </button>
-                    <button 
-                    onclick="downloadGif(${pokemon.id}, '${pokemon.name}', 'front', event)"
-                    class="hover:text-white transition flex items-center gap-1"
-                    title="Download Animated GIF"
-                    >
-                    <i class="fa-solid fa-download text-[10px]"></i>
-                    <span>Save GIF</span>
-                    </button>
-                </div>
+                </button>
             </div>
-        `;
-        grid.appendChild(card);
-    });
+        </div>
+
+        <!-- Main GIF Screen -->
+        <div class="flex-1 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+            
+            <!-- Background -->
+            <div class="absolute inset-0" style="background:${bgGradient};"> </div>
+            <!-- Lighting -->
+            <div class="absolute w-[350px] h-[350px] rounded-full" style=" background:${glowColor}; filter:blur(0px); opacity:.12; "></div>
+
+            <div class="absolute inset-0 opacity-60" 
+                style=" background: radial-gradient(circle at center, rgba(255,255,255,0) 0%, rgba(255,255,255,.35) 35%, rgba(0,0,0,.02) 100%); ">
+            </div>
+
+            <h3 class="text-lg font-extrabold uppercase tracking-wide text-slate-400 absolute top-0"> ${pokemon.name} </h3>
+
+            <div class="w-36 h-36 flex items-center justify-center relative mx-auto z-10">
+                <!-- Poké Ball Watermark -->
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none" style="opacity:.4;">
+                    <div class="w-36 h-36 rounded-full border-[10px] border-black/2 relative">
+                        <div class="absolute left-0 right-0 top-1/2 h-[10px] -translate-y-1/2 bg-black/5"></div>
+                        <div class="absolute left-1/2 top-1/2 w-8 h-8 rounded-full border-[8px] border-black/2 bg-transparent -translate-x-1/2 -translate-y-1/2"></div>
+                    </div>
+                </div>
+
+                <!-- Type Glow -->
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div class="pokemon-glow w-16 h-16 rounded-full" style=" background:${glowColor}; filter:blur(5px); opacity:1; "></div>
+                </div>
+
+                <!-- Pokémon -->
+                <img 
+                    src="${currentGifUrl}" 
+                    alt="${pokemon.name}" 
+                    class="pokemon-sprite max-h-70 max-w-full object-contain relative z-20"
+                    loading="lazy"
+                    onload="this.classList.add('loaded')"
+                    onerror="this.onerror=null; this.src='${fallbackUrl}'; this.classList.add('loaded');"
+                />
+            </div>
+
+            <!-- Info -->
+            <div class="px-4 pt-3 pb-2 text-center absolute bottom-0 w-full z-10">
+                <div class="flex justify-center gap-2 mt-2"> ${typeBadges} </div>
+            </div>
+        </div>
+
+        
+
+        <!-- Toolbar -->
+        <div class="border-t border-[#2d2d37] bg-[#17171b] grid grid-cols-3">
+            <button onclick="event.stopPropagation(); copyGifUrl(${pokemon.id}, '${pokemon.name}')" class="py-3 text-xs text-gray-400 hover:text-white transition">
+                <i class="fa-solid fa-link mb-1 block"></i>
+                Copy
+            </button>
+
+            <button onclick="event.stopPropagation(); playCry(${pokemon.id})" class="py-3 text-xs text-gray-400 hover:text-white transition">
+                <i class="${cryIconClass} mb-1 block"></i>
+                Cry
+            </button>
+
+            <button onclick="downloadGif(${pokemon.id}, '${pokemon.name}', 'front', event)" class="py-3 text-xs text-gray-400 hover:text-white transition"> 
+                <i class="fa-solid fa-download mb-1 block"></i>
+                Save
+            </button>
+        </div>
+    `;
 }
 
 // Copy Tool

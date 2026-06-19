@@ -4,49 +4,70 @@
     transform: none;
 }
 
-/* Animate only when needed */
-.pokemon-card.animate-in {
-    opacity: 0;
-    transform: translateY(24px) scale(.96);
-    animation: cardEnter .45s cubic-bezier(.22,.61,.36,1) forwards;
-    will-change: transform, opacity;
-}
-
-@keyframes cardEnter {
-    from {
-        opacity: 0;
-        transform: translateY(24px) scale(.96);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-/* Pokémon Sprite Loading */
+/* Pokémon Sprite */
 .pokemon-sprite{
     opacity:0;
-    transition:opacity .25s ease;
-}
-
-.pokemon-sprite.loaded{
-    opacity:1;
-}
-
-/* Glow Animation */
-.pokemon-glow{
-    opacity:0;
-    transform:scale(.6);
+    transform:scale(.75);
     transition:
         opacity .35s ease,
-        transform .35s ease;
+        transform .35s cubic-bezier(.22,.61,.36,1);
 }
 
-.pokemon-card:hover .pokemon-glow{
-    opacity:.5;
-}
-
-.pokemon-sprite.loaded + .pokemon-glow{
-    opacity:.3;
+/* When loaded */
+.pokemon-sprite.loaded{
+    opacity:1;
     transform:scale(1);
+
+    animation: pokemonFloat 3s ease-in-out infinite;
+}
+
+/* Idle Floating */
+@keyframes pokemonFloat{
+    0%{
+        transform:translateY(0px);
+    }
+
+    50%{
+        transform:translateY(-5px);
+    }
+
+    100%{
+        transform:translateY(0px);
+    }
+}
+
+/* Premium Hover */
+.pokemon-card:hover .pokemon-sprite.loaded{
+    transform:
+        translateY(-10px)
+        scale(1.18)
+        rotate(-4deg);
+
+    transition:
+        transform .28s cubic-bezier(.22,.61,.36,1);
+}
+
+.pokemon-glow{
+    opacity:.35;
+    animation:glowPulse 3.5s ease-in-out infinite;
+    will-change:transform,opacity;
+}
+
+@keyframes glowPulse{
+
+    0%{
+        transform:scale(1.5);
+        opacity:.20;
+    }
+
+    50%{
+        transform:scale(2);
+        opacity:.45;
+    }
+
+    100%{
+        transform:scale(1.5);
+        opacity:.20;
+    }
+
 }
