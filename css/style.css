@@ -1,0 +1,17 @@
+/* Pokémon Card Entrance */
+.pokemon-card {
+    opacity: 0;
+    transform: translateY(24px) scale(.96);
+    animation: cardEnter .45s cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+@keyframes cardEnter {
+    from {
+        opacity: 0;
+        transform: translateY(24px) scale(.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}

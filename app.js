@@ -6,7 +6,6 @@ async function loadKantoDex() {
     const response = await fetch("./data/kanto.json");
     POKEMON = await response.json();
 
-    updateHeaderAndStats();
     renderGrid();
 }
 
@@ -38,30 +37,33 @@ try {
 function getGifUrl(id, style, shiny, direction = 'front') {
     const shinyPath = shiny ? 'shiny/' : '';
     const path = direction === 'back' ? 'back/' : '';
+
     if (style === 'retro') {
-    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${path}${shinyPath}${id}.gif`;
+        return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${path}${shinyPath}${id}.gif`;
     } else {
-    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/${path}${shinyPath}${id}.gif`;
+        return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/${path}${shinyPath}${id}.gif`;
     }
 }
 
 // Helper: Formulate fallback URL
 function getFallbackUrl(id, direction = 'front') {
     if (direction === 'back') {
-    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/${id}.png`;
+        return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/${id}.png`;
     }
-    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+        return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
 }
 
 // Dynamic UI Toast Trigger
 function showToast(msg) {
     const toast = document.getElementById("toast");
     const toastText = document.getElementById("toast-text");
+
     toastText.innerText = msg;
     toast.classList.remove("hidden");
     toast.classList.add("animate-slideIn");
+
     setTimeout(() => {
-    toast.classList.add("hidden");
+        toast.classList.add("hidden");
     }, 3000);
 }
 
@@ -78,24 +80,26 @@ function copyToClipboard(text) {
 // Play/Pause Pokemon Cry Sound
 function playCry(id) {
     if (currentAudio) {
-    currentAudio.pause();
+        currentAudio.pause();
     }
+
     playingCryId = id;
     updateCryIcons();
 
     try {
-    currentAudio = new Audio(`https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`);
-    currentAudio.volume = 0.45;
-    currentAudio.play().catch(err => {
-        console.log("Audio blocker fallback", err);
-        showToast("Click again to play Pokémon cry!");
-        resetCryState();
-    });
-    currentAudio.onended = () => {
-        resetCryState();
-    };
+        currentAudio = new Audio(`https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`);
+        currentAudio.volume = 0.45;
+        currentAudio.play().catch(err => {
+            console.log("Audio blocker fallback", err);
+            showToast("Click again to play Pokémon cry!");
+            resetCryState();
+        });
+
+        currentAudio.onended = () => {
+            resetCryState();
+        };
     } catch (e) {
-    resetCryState();
+        resetCryState();
     }
 }
 
@@ -107,90 +111,73 @@ function resetCryState() {
 function updateCryIcons() {
     // Update global grid elements playing states
     document.querySelectorAll("[data-cry-btn]").forEach(btn => {
-    const pId = parseInt(btn.getAttribute("data-cry-btn"));
-    const icon = btn.querySelector("i");
-    if (pId === playingCryId) {
-        icon.className = "fa-solid fa-volume-high text-green-400 animate-pulse";
-    } else {
-        icon.className = "fa-solid fa-volume-low text-gray-400 hover:text-yellow-400";
-    }
+        const pId = parseInt(btn.getAttribute("data-cry-btn"));
+        const icon = btn.querySelector("i");
+
+        if (pId === playingCryId) {
+            icon.className = "fa-solid fa-volume-high text-green-400 animate-pulse";
+        } else {
+            icon.className = "fa-solid fa-volume-low text-gray-400 hover:text-yellow-400";
+        }
     });
 
     // Update modal icon state if open
     const modalCryIcon = document.getElementById("modal-cry-icon");
+
     if (playingCryId && selectedPokemonId === playingCryId) {
-    modalCryIcon.className = "fa-solid fa-spinner animate-spin text-green-400";
+        modalCryIcon.className = "fa-solid fa-spinner animate-spin text-green-400";
     } else {
-    modalCryIcon.className = "fa-solid fa-volume-high";
+        modalCryIcon.className = "fa-solid fa-volume-high";
     }
 }
 
 // Favorites Manager
 function toggleFavorite(id, name, event) {
     if (event) event.stopPropagation();
-    const idx = favorites.indexOf(id);
+        const idx = favorites.indexOf(id);
     if (idx > -1) {
-    favorites.splice(idx, 1);
-    showToast(`Removed ${name} from your Favorites Shelf!`);
+        favorites.splice(idx, 1);
+        showToast(`Removed ${name} from your Favorites Shelf!`);
     } else {
-    favorites.push(id);
-    showToast(`Added ${name} to your Favorites Shelf!`);
+        favorites.push(id);
+        showToast(`Added ${name} to your Favorites Shelf!`);
     }
     localStorage.setItem("fav_pokemon_gifs", JSON.stringify(favorites));
     
     // Sync Modal Heart if open
     updateModalFavButtonState();
-    
-    // Update stats and render grid
-    updateHeaderAndStats();
     renderGrid();
-}
-
-// Update Headers, Badges, and Stats Counts
-function updateHeaderAndStats() {
-    const favBtn = document.getElementById("favorites-toggle");
-    const favIcon = document.getElementById("favorites-icon");
-    const favSpan = favBtn.querySelector("span");
-    favSpan.innerText = `Favorites (${favorites.length})`;
-    
-    if (viewFavoritesOnly) {
-    favBtn.className = "px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-all duration-200 border bg-rose-500/20 text-rose-400 border-rose-500/40 shadow-inner";
-    favIcon.className = "fa-solid fa-heart text-rose-500 scale-110";
-    } else {
-    favBtn.className = "px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-all duration-200 border bg-[#1f1f23] text-gray-300 border-[#2b2b35] hover:bg-[#2b2b35]";
-    favIcon.className = "fa-regular fa-heart";
-    }
-
-    // Stats belt
-    document.getElementById("stats-fav-count").innerText = `${favorites.length} / 151`;
-    document.getElementById("stats-style-text").innerText = `${isShiny ? "Shiny " : ""}${gifStyle === 'modern' ? '3D Modern' : 'Retro Pixel'}`;
-
-    // Backup Export button status
-    const exportBtn = document.getElementById("export-favorites");
-    exportBtn.disabled = favorites.length === 0;
 }
 
 // Direct GIF Saving Functionality
 async function downloadGif(id, name, angle = 'front', event) {
+
     if (event) event.stopPropagation();
     const url = getGifUrl(id, gifStyle, isShiny, angle);
     showToast(`Downloading ${name}'s GIF...`);
+
     try {
-    const response = await fetch(url);
-    const blob = await response.blob();
-    const blobUrl = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = blobUrl;
-    link.download = `${name.toLowerCase()}_${angle}_${gifStyle}${isShiny ? "_shiny" : ""}.gif`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(blobUrl);
-    showToast("Download started successfully!");
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = blobUrl;
+        link.download = `${name.toLowerCase()}_${angle}_${gifStyle}${isShiny ? "_shiny" : ""}.gif`;
+
+        document.body.appendChild(link);
+        link.click();
+
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+
+        showToast("Download started successfully!");
+
     } catch (err) {
-    console.error(err);
-    window.open(url, '_blank');
-    showToast("Secure download blocked. Opened in new window instead!");
+
+        console.error(err);
+        window.open(url, '_blank');
+        showToast("Secure download blocked. Opened in new window instead!");
     }
 }
 
@@ -203,31 +190,31 @@ function renderGrid() {
 
     // Filter: Search Text
     if (searchQuery.trim() !== "") {
-    const query = searchQuery.toLowerCase().trim();
-    pokemonList = pokemonList.filter(p => 
-        p.name.toLowerCase().includes(query) || p.id.toString() === query
-    );
+        const query = searchQuery.toLowerCase().trim();
+        pokemonList = pokemonList.filter(p => 
+            p.name.toLowerCase().includes(query) || p.id.toString() === query
+        );
     }
 
     // Filter: Type
     if (selectedType !== "all") {
-    pokemonList = pokemonList.filter(p => p.types.includes(selectedType));
+        pokemonList = pokemonList.filter(p => p.types.includes(selectedType));
     }
 
     // Filter: Favorites Only
     if (viewFavoritesOnly) {
-    pokemonList = pokemonList.filter(p => favorites.includes(p.id));
+        pokemonList = pokemonList.filter(p => favorites.includes(p.id));
     }
 
     // Sort
     pokemonList.sort((a, b) => {
-    if (sortBy === "id-asc") return a.id - b.id;
-    if (sortBy === "id-desc") return b.id - a.id;
-    if (sortBy === "name-asc") return a.name.localeCompare(b.name);
-    if (sortBy === "name-desc") return b.name.localeCompare(a.name);
-    if (sortBy === "hp-desc") return b.hp - a.hp;
-    if (sortBy === "speed-desc") return b.speed - a.speed;
-    return 0;
+        if (sortBy === "id-asc") return a.id - b.id;
+        if (sortBy === "id-desc") return b.id - a.id;
+        if (sortBy === "name-asc") return a.name.localeCompare(b.name);
+        if (sortBy === "name-desc") return b.name.localeCompare(a.name);
+        if (sortBy === "hp-desc") return b.hp - a.hp;
+        if (sortBy === "speed-desc") return b.speed - a.speed;
+        return 0;
     });
 
     // Clear Grid
@@ -235,108 +222,112 @@ function renderGrid() {
 
     // Empty State View
     if (pokemonList.length === 0) {
-    grid.classList.add("hidden");
-    emptyState.classList.remove("hidden");
-    const emptyMsg = document.getElementById("empty-message");
-    if (viewFavoritesOnly) {
-        emptyMsg.innerText = "You haven't added any Kanto Pokémon to your favorites shelf yet. Click the heart icon on any card!";
-    } else {
-        emptyMsg.innerText = "We couldn't find any results matching your search queries. Try refining your filters!";
-    }
-    return;
+        grid.classList.add("hidden");
+        emptyState.classList.remove("hidden");
+        const emptyMsg = document.getElementById("empty-message");
+        
+        if (viewFavoritesOnly) {
+            emptyMsg.innerText = "You haven't added any Kanto Pokémon to your favorites shelf yet. Click the heart icon on any card!";
+        } else {
+            emptyMsg.innerText = "We couldn't find any results matching your search queries. Try refining your filters!";
+        }
+
+        return;
     }
 
     grid.classList.remove("hidden");
     emptyState.classList.add("hidden");
 
     // Generate Card Nodes
-    pokemonList.forEach(pokemon => {
-    const isFavorited = favorites.includes(pokemon.id);
-    const currentGifUrl = getGifUrl(pokemon.id, gifStyle, isShiny, 'front');
-    const fallbackUrl = getFallbackUrl(pokemon.id, 'front');
+    pokemonList.forEach((pokemon, index) => {
+        const isFavorited = favorites.includes(pokemon.id);
+        const currentGifUrl = getGifUrl(pokemon.id, gifStyle, isShiny, 'front');
+        const fallbackUrl = getFallbackUrl(pokemon.id, 'front');
 
-    // Create Badge markup
-    const typeBadges = pokemon.types.map(t => 
-        `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded text-white tracking-wider uppercase bg-pokemon-${t}">${t}</span>`
-    ).join("");
+        // Create Badge markup
+        const typeBadges = pokemon.types.map(t => 
+            `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded text-white tracking-wider uppercase bg-pokemon-${t}">${t}</span>`
+        ).join("");
 
-    const isPlaying = playingCryId === pokemon.id;
-    const cryIconClass = isPlaying ? "fa-solid fa-volume-high text-green-400 animate-pulse" : "fa-solid fa-volume-low text-gray-400 hover:text-yellow-400";
+        const isPlaying = playingCryId === pokemon.id;
+        const cryIconClass = isPlaying ? "fa-solid fa-volume-high text-green-400 animate-pulse" : "fa-solid fa-volume-low text-gray-400 hover:text-yellow-400";
 
-    const card = document.createElement("div");
-    card.className = "pokemon-card group bg-[#ffffff] border border-[#212127] hover:border-[#383842] rounded-xl overflow-hidden relative cursor-pointer flex flex-col justify-between h-72";
-    card.onclick = () => openModal(pokemon.id);
-
-    card.innerHTML = `
-        <!-- Card Action Header -->
-        <div class="flex justify-between items-center px-3 py-2 text-xs text-gray-400 z-10">
-        <span class="font-mono text-pokeRed-500 font-bold">
-            #${String(pokemon.id).padStart(3, '0')}
-        </span>
-        <div class="flex gap-2">
-            <button 
-            onclick="toggleFavorite(${pokemon.id}, '${pokemon.name}', event)"
-            class="text-gray-400 hover:text-rose-500 transition-colors p-1"
-            title="Add to Favorites"
-            >
-            <i class="${isFavorited ? 'fa-solid fa-heart text-rose-500' : 'fa-regular fa-heart'}"></i>
-            </button>
-            <button 
-            data-cry-btn="${pokemon.id}"
-            onclick="event.stopPropagation(); playCry(${pokemon.id})"
-            class="transition-all p-1"
-            title="Play Pokémon Cry"
-            >
-            <i class="${cryIconClass}"></i>
-            </button>
-        </div>
-        </div>
-
-        <!-- Main GIF Screen -->
-        <div class="flex-1 flex flex-col items-center justify-center p-4 relative">
-        <div class="w-24 h-24 flex items-center justify-center relative">
-            <div class="absolute inset-0 rounded-full blur-xl opacity-30 transition-colors group-hover:opacity-50 bg-pokemon-${pokemon.types[0]}"></div>
-            <img 
-            src="${currentGifUrl}" 
-            alt="${pokemon.name}" 
-            class="max-h-20 max-w-full object-contain relative z-10 transition-transform duration-300 group-hover:scale-200"
-            loading="lazy"
-            onerror="this.onerror=null; this.src='${fallbackUrl}';"
-            />
-        </div>
-        </div>
-
-        <!-- Description and Footer -->
-        <div class="p-3 bg-[#1c1c1f]/80 border-t border-[#232329] relative z-10">
-        <h3 class="text-sm font-bold text-white group-hover:text-pokeRed-400 transition-colors">
-            ${pokemon.name}
-        </h3>
-        <div class="flex gap-1.5 mt-1.5 flex-wrap">
-            ${typeBadges}
-        </div>
+        const card = document.createElement("div");
+        card.style.animationDelay = `${Math.min(index * 25, 400)}ms`;
         
-        <div class="flex items-center justify-between border-t border-[#2d2d37] mt-3.5 pt-2 text-[11px] text-gray-400 font-medium">
-            <button 
-            id="copy-btn-${pokemon.id}"
-            onclick="event.stopPropagation(); copyGifUrl(${pokemon.id}, '${pokemon.name}')"
-            class="hover:text-white transition flex items-center gap-1"
-            title="Copy Direct GIF Link"
-            >
-            <i class="fa-solid fa-link"></i>
-            <span>Copy</span>
-            </button>
-            <button 
-            onclick="downloadGif(${pokemon.id}, '${pokemon.name}', 'front', event)"
-            class="hover:text-white transition flex items-center gap-1"
-            title="Download Animated GIF"
-            >
-            <i class="fa-solid fa-download text-[10px]"></i>
-            <span>Save GIF</span>
-            </button>
-        </div>
-        </div>
-    `;
-    grid.appendChild(card);
+        card.className = "pokemon-card group bg-[#ffffff] border border-[#212127] hover:border-[#383842] rounded-xl overflow-hidden relative cursor-pointer flex flex-col justify-between h-72";
+        card.onclick = () => openModal(pokemon.id);
+
+        card.innerHTML = `
+            <!-- Card Action Header -->
+            <div class="flex justify-between items-center px-3 py-2 text-xs text-gray-400 z-10">
+            <span class="font-mono text-pokeRed-500 font-bold">
+                #${String(pokemon.id).padStart(3, '0')}
+            </span>
+            <div class="flex gap-2">
+                <button 
+                onclick="toggleFavorite(${pokemon.id}, '${pokemon.name}', event)"
+                class="text-gray-400 hover:text-rose-500 transition-colors p-1"
+                title="Add to Favorites"
+                >
+                <i class="${isFavorited ? 'fa-solid fa-heart text-rose-500' : 'fa-regular fa-heart'}"></i>
+                </button>
+                <button 
+                data-cry-btn="${pokemon.id}"
+                onclick="event.stopPropagation(); playCry(${pokemon.id})"
+                class="transition-all p-1"
+                title="Play Pokémon Cry"
+                >
+                <i class="${cryIconClass}"></i>
+                </button>
+            </div>
+            </div>
+
+            <!-- Main GIF Screen -->
+            <div class="flex-1 flex flex-col items-center justify-center p-4 relative">
+            <div class="w-24 h-24 flex items-center justify-center relative">
+                <div class="absolute inset-0 rounded-full blur-xl opacity-30 transition-colors group-hover:opacity-50 bg-pokemon-${pokemon.types[0]}"></div>
+                <img 
+                src="${currentGifUrl}" 
+                alt="${pokemon.name}" 
+                class="max-h-20 max-w-full object-contain relative z-10 transition-transform duration-300 group-hover:scale-200"
+                loading="lazy"
+                onerror="this.onerror=null; this.src='${fallbackUrl}';"
+                />
+            </div>
+            </div>
+
+            <!-- Description and Footer -->
+            <div class="p-3 bg-[#1c1c1f]/80 border-t border-[#232329] relative z-10">
+            <h3 class="text-sm font-bold text-white group-hover:text-pokeRed-400 transition-colors">
+                ${pokemon.name}
+            </h3>
+            <div class="flex gap-1.5 mt-1.5 flex-wrap">
+                ${typeBadges}
+            </div>
+            
+            <div class="flex items-center justify-between border-t border-[#2d2d37] mt-3.5 pt-2 text-[11px] text-gray-400 font-medium">
+                <button 
+                id="copy-btn-${pokemon.id}"
+                onclick="event.stopPropagation(); copyGifUrl(${pokemon.id}, '${pokemon.name}')"
+                class="hover:text-white transition flex items-center gap-1"
+                title="Copy Direct GIF Link"
+                >
+                <i class="fa-solid fa-link"></i>
+                <span>Copy</span>
+                </button>
+                <button 
+                onclick="downloadGif(${pokemon.id}, '${pokemon.name}', 'front', event)"
+                class="hover:text-white transition flex items-center gap-1"
+                title="Download Animated GIF"
+                >
+                <i class="fa-solid fa-download text-[10px]"></i>
+                <span>Save GIF</span>
+                </button>
+            </div>
+            </div>
+        `;
+        grid.appendChild(card);
     });
 }
 
@@ -519,7 +510,6 @@ window.onload = async function() {
         document.getElementById("type-select").value = "all";
         viewFavoritesOnly = false;
         renderGrid();
-        updateHeaderAndStats();
     };
 
     // Style Switches
@@ -530,7 +520,6 @@ window.onload = async function() {
         gifStyle = "modern";
         modBtn.className = "px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all duration-150 bg-pokeRed-600 text-white shadow";
         retBtn.className = "px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all duration-150 text-gray-400 hover:text-white";
-        updateHeaderAndStats();
         updateModalImages();
         renderGrid();
     };
@@ -539,7 +528,6 @@ window.onload = async function() {
         gifStyle = "retro";
         retBtn.className = "px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all duration-150 bg-pokeRed-600 text-white shadow";
         modBtn.className = "px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all duration-150 text-gray-400 hover:text-white";
-        updateHeaderAndStats();
         updateModalImages();
         renderGrid();
     };
@@ -561,7 +549,6 @@ window.onload = async function() {
             this.title = "Enable Shiny";
         }
 
-        updateHeaderAndStats();
         updateModalImages();
         renderGrid();
     };
@@ -569,7 +556,6 @@ window.onload = async function() {
     // Favorites shelf toggle
     document.getElementById("favorites-toggle").onclick = function() {
         viewFavoritesOnly = !viewFavoritesOnly;
-        updateHeaderAndStats();
         renderGrid();
     };
 

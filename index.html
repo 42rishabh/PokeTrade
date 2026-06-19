@@ -26,6 +26,7 @@
     <script src="./tailwind-config.js" defer></script>
 
     <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/responsive.css">
     
   </head>
@@ -81,28 +82,18 @@
             <!-- Favorites Mode Button -->
             <button id="favorites-toggle" class="px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-all duration-200 border bg-[#1f1f23] text-gray-300 border-[#2b2b35] hover:bg-[#2b2b35]">
               <i id="favorites-icon" class="fa-regular fa-heart"></i>
-              <span>Favorites (0)</span>
+              <span>(0)</span>
             </button>
           </div>
 
         </div>
       </header>
 
-      <!-- Quick Stats Summary / Interactive Belt -->
-      <section class="bg-gradient-to-r from-pokeRed-600/10 via-amber-500/5 to-blue-500/10 border-b border-[#212127] py-2 px-4 text-xs font-mono text-center text-gray-300">
-        <div class="max-w-7xl mx-auto flex flex-wrap justify-center items-center gap-y-1 gap-x-6">
-          <span>🎒 Region: <strong>Kanto</strong></span>
-          <span>👾 Total: <strong>151 Pokémon</strong></span>
-          <span>✨ Style: <strong id="stats-style-text" class="text-yellow-400 capitalize">3D Modern</strong></span>
-          <span>❤️ Saved: <strong id="stats-fav-count">0 / 151</strong></span>
-        </div>
-      </section>
-
       <!-- Core App Container -->
       <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full flex flex-col">
 
         <!-- Search, Filter, Sort Controls Panel -->
-        <div class="bg-[#161619] border border-[#212127] p-4 rounded-xl shadow-lg mb-6 flex flex-col lg:flex-row gap-4 justify-between items-stretch">
+        <div class="bg-[#161619] border border-[#212127] p-4 rounded-xl shadow-lg mb-4 flex flex-col lg:flex-row gap-4 justify-between items-stretch">
 
           <!-- Search input -->
           <div class="relative flex-1">
@@ -162,7 +153,7 @@
         </div>
 
         <!-- Complete Kanto Export Actions at the bottom of the grid -->
-        <div class="mt-12 bg-[#161619] border border-[#212127] rounded-xl p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="mt-4 bg-[#161619] border border-[#212127] rounded-xl p-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
             <h3 class="text-base font-bold text-white">Need to backup your custom Favorites list?</h3>
             <p class="text-xs text-gray-400">Save and download your list of custom GIF configurations to use anytime on

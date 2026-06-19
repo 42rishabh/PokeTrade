@@ -1,9 +1,9 @@
 .mobile{
-    dislay: none;
+    display: block;
 }
 
 @media (max-width: 768px) {
     .mobile{
-        display: block;
+        display: none;
     }
 }
